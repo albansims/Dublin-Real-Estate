@@ -13,8 +13,7 @@ library(sp)
 data_clean <- data[complete.cases(data$longitude, data$latitude), ]
 
 data$longitude <- as.numeric(data$longitude)
-data$latitude <- as.numeric(data$latitude)
-data_clean <- data[complete.cases(data$longitude, data$latitude), ]
+data$latitude <- as.numeric(data$latitude)
 
 # Create a function to convert prices to monthly
 convert_to_monthly <- function(price_string) {

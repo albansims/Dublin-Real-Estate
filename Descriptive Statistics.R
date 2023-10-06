@@ -31,14 +31,32 @@ data_clean <- data_clean[-1, ]
 
 # Print the modified dataset
 print(data_clean)
+write.csv(data_clean, file = "data_clean.csv")
 
 # libraries for plot
 library(ggplot2)
 library(ggmap)
 
 # Summary statistics of rental prices
-SS <- summary(data_clean$price)
-print(SS)
+library(knitr)
+
+summary_data <- data.frame(
+  Statistic = c("Min", "1st Qu.", "Median", "Mean", "3rd Qu.", "Max"),
+  Value = c(
+    min(data_clean$price),
+    quantile(data_clean$price, 0.25),
+    median(data_clean$price),
+    mean(data_clean$price),
+    quantile(data_clean$price, 0.75),
+    max(data_clean$price)
+  )
+)
+
+print(summary_data)
+write.csv(summary_data, file = "summary_statistics.csv", row.names = FALSE)
+SS <- read.csv("summary_statistics.csv")
+kable(SS, format = "latex")
+
 price_mean <- mean(data_clean$price)
 price_sd <- sd(data_clean$price)
 
@@ -124,3 +142,4 @@ ggplot(common_combinations, aes(x = factor(bedroom), y = factor(bathroom), fill 
        x = "Bedrooms",
        y = "Bathrooms") +
   theme_minimal()
+

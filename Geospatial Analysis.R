@@ -45,7 +45,7 @@ library(ggplot2)
 library(ggmap)
 
 # This requires a Google API Key in order to create a map from Google Maps
-register_google(key = "AIzaSyCVcHiYYjhJi_mRLyHwNC602t4fwGtPy9c")
+register_google(key = "")
 
 # Create a basemap of Dublin
 dublin_map <- get_map(location = "Dublin, Ireland", zoom = 12)

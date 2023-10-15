@@ -13,7 +13,8 @@ library(sp)
 data_clean <- data[complete.cases(data$longitude, data$latitude), ]
 
 data$longitude <- as.numeric(data$longitude)
-data$latitude <- as.numeric(data$latitude)
+data$latitude <- as.numeric(data$latitude)
+data_clean <- data[complete.cases(data$longitude, data$latitude), ]
 
 # Create a function to convert prices to monthly
 convert_to_monthly <- function(price_string) {
@@ -43,8 +44,8 @@ dublin_sf <- st_transform(dublin_sf, crs = 4326)
 library(ggplot2)
 library(ggmap)
 
-# This requires a Google API Key in order to create a map from Google Maps. Tutorial on my github on how to acess one from Google Cloud service
-register_google(key = "")
+# This requires a Google API Key in order to create a map from Google Maps
+register_google(key = "AIzaSyCVcHiYYjhJi_mRLyHwNC602t4fwGtPy9c")
 
 # Create a basemap of Dublin
 dublin_map <- get_map(location = "Dublin, Ireland", zoom = 12)
@@ -57,6 +58,37 @@ ggmap(dublin_map) +
   scale_color_gradient(low = "blue", high = "red") +  
   labs(title = "Dublin Real Estate Prices") +  
   theme_minimal()  
+
+
+# Create log transformation
+dublin_sf$log_price <- log(dublin_sf$price)
+
+ggmap(dublin_map) +
+  geom_sf(data = dublin_sf, inherit.aes = FALSE, aes(color = log_price), size = 2) +
+  scale_color_gradient(low = "blue", high = "red") +
+  labs(title = "Dublin Real Estate Prices (Log Transformed)") +
+  theme_minimal()
+
+ggmap(dublin_county_map) +
+  geom_sf(data = dublin_sf,inherit.aes = FALSE, aes(color = log_price), size = 2) +  
+  scale_color_gradient(low = "blue", high = "red") +  
+  labs(title = "Dublin Real Estate Prices") +  
+  theme_minimal() 
+
+# Filter data to only include observations with prices less than 7500
+filtered_dublin_sf <- dublin_sf[dublin_sf$price < 7500, ]
+
+ggmap(dublin_map) +
+  geom_sf(data = filtered_dublin_sf, inherit.aes = FALSE, aes(color = price), size = 2) +
+  scale_color_gradient(low = "blue", high = "red") +
+  labs(title = "Dublin Real Estate Prices (Filtered)") +
+  theme_minimal()
+
+ggmap(dublin_county_map) +
+  geom_sf(data = filtered_dublin_sf, inherit.aes = FALSE, aes(color = price), size = 2) +
+  scale_color_gradient(low = "blue", high = "red") +
+  labs(title = "Dublin Real Estate Prices (Filtered)") +
+  theme_minimal()
 
 # Create a ggplot2 of geographic distribution of property
 ggmap(dublin_map) +
@@ -131,14 +163,31 @@ dublin_sf$cluster <- cluster_assignments
 dublin_sf$cluster <- factor(dublin_sf$cluster)
 
 # Plot the map with clusters
+ggmap(dublin_map) +
+  geom_sf(data = dublin_sf, inherit.aes = FALSE, aes(color = cluster), size = 2) +
+  scale_color_manual(values = c("red", "blue", "green", "purple", "orange", "yellow", "brown", "black", "grey", "pink")) +  # Define your custom colors
+  labs(title = "K-means Clustering of Dublin Real Estate by Price") +
+  theme_minimal()
+
 ggmap(dublin_county_map) +
   geom_sf(data = dublin_sf, inherit.aes = FALSE, aes(color = cluster), size = 2) +
   scale_color_manual(values = c("red", "blue", "green", "purple", "orange", "yellow", "brown", "black", "grey", "pink")) +  # Define your custom colors
   labs(title = "K-means Clustering of Dublin Real Estate by Price") +
   theme_minimal()
 
+# Calculate the average price per cluster
+cluster_avg_prices <- dublin_sf %>%
+  group_by(cluster) %>%
+  summarize(Average_Price = mean(price))
+cluster_avg_prices <- st_drop_geometry(cluster_avg_prices)
+# Print the summary to see which clusters have higher average prices
+print(cluster_avg_prices)
+
+library(knitr)
+kable(cluster_avg_prices, format = "latex")
+
 #library(spdep)
-## Can't get Moran's to work
+## Can't get Moran's to work (WIP)
 # Create a spatial weights matrix 
 #w <- dnearneigh(dublin_sf, d1 = 10, d2 = 50)
 # Convert 'w' to a listw object
